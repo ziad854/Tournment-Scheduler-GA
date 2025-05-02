@@ -1,4 +1,5 @@
 import numpy as np
+import itertools
 
 class Schedule:
     def __init__(self, teams, venues, constraints):
@@ -8,9 +9,28 @@ class Schedule:
         self.schedule = self._initialize_schedule()
 
     def _initialize_schedule(self):
-        # Randomly initialize a schedule (round-robin example)
-        num_matches = len(self.teams) * (len(self.teams) - 1) // 2  # Total matches in round-robin
-        return np.random.permutation(num_matches)
+        team_ids = self.teams["TeamID"].tolist()
+        venue_ids = self.venues["VenueID"].tolist()
+        days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+        timeslots = self.constraints["time_slots"]
 
-    def __repr__(self):
-        return f"Schedule({self.schedule})"
+        all_matches = list(itertools.combinations(team_ids, 2))  # Generate all possible matches
+        schedule = []
+
+        for match in all_matches:
+            team1, team2 = match
+            venue_id = int(np.random.choice(venue_ids))  # Ensure it's an int
+            day = str(np.random.choice(days))  # Ensure it's a string
+            timeslot = str(np.random.choice(timeslots))  # Ensure it's a timeslot string
+            schedule.append((team1, team2, venue_id, day, timeslot))  # Append as a tuple
+
+        return schedule
+
+    def _replace_schedule(self, new_schedule):
+        """
+        Replace the schedule with a new one.
+        :param new_schedule: The new schedule (list of matches).
+        :return: A new Schedule object with the updated schedule.
+        """
+        self.schedule = new_schedule
+        return self
