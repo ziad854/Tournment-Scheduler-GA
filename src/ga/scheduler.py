@@ -3,16 +3,19 @@ from src.ga.fitness import evaluate_fitness
 from src.ga.operators import crossover, mutate, select_parents
 
 
-def genetic_algorithm(constraints,population_size=500):
+def genetic_algorithm(constraints,population_size):
     # Initialize population
     population = initialize_population(constraints, population_size )
 
-    init_eval = [evaluate_fitness(ind, constraints) for ind in population]
+    fitness_scores = [evaluate_fitness(ind, constraints) for ind in population]
+
+    best_fitness = max(fitness_scores)
+    best_generation  = population
     generation = 0
-    while init_eval != 0 :# and generation < 100:
+    while fitness_scores != 0  and generation < 500:
         # Evaluate fitness
         fitness_scores = [evaluate_fitness(ind, constraints) for ind in population]
-        init_eval = fitness_scores
+
         # Select parents
         selected = select_parents(population, fitness_scores)
 
@@ -24,16 +27,20 @@ def genetic_algorithm(constraints,population_size=500):
             new_population.extend([child1, child2])
 
         # Mutate
-        population = [mutate(ind) for ind in new_population]
+        population = [mutate(constraints,ind) for ind in new_population]
 
         # Replace old population
         population = new_population
 
         # Log best fitness
-        best_fitness = max(fitness_scores)
+        if best_fitness < max(fitness_scores):
+            best_generation = population
+            best_fitness = max(fitness_scores)
+            print(f"New best fitness found: {best_fitness}")
         print(f"Generation {generation}: Best Fitness = {best_fitness}")
+
         generation += 1
 
-    return population
+    return best_generation, best_fitness
 
 

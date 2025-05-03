@@ -6,14 +6,14 @@ from src.utils.analsyis import analyze_schedule
 
 if __name__ == "__main__":
     # Load input data
-    data = parse_input_data("data/data.json")
+    constraints = parse_input_data("data/data.json")
 
 
     # Run GA
-    final_population = genetic_algorithm(data , population_size=1000 )
+    best_population, best_fitness  = genetic_algorithm(constraints , population_size=2000 )
 
     # Visualize best schedule
-    best_schedule = max(final_population, key=lambda s: evaluate_fitness(s, data))
+    best_schedule = max(best_population, key=lambda s: evaluate_fitness(s, constraints))
 
     all_played_all, no_simultaneous_matches = analyze_schedule(best_schedule)
     print(f"Every team plays every other team exactly once: {all_played_all}")
@@ -21,6 +21,6 @@ if __name__ == "__main__":
 
     # number_of_teams = len(best_schedule['teams'])
     # print(f"Number of teams: {number_of_teams}")
-    print(f"Best schedule fitness: {evaluate_fitness(best_schedule, data)}")
+    print(f"Best schedule fitness: {evaluate_fitness(best_schedule, constraints)}")
 
     visualize_schedule(best_schedule)

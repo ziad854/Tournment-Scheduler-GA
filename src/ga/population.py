@@ -1,13 +1,14 @@
 import numpy as np
 import random
 
-random.seed(42)  
+
 
 
 def initialize_population(constraints, population_size ):
     time_slots = constraints['time_slots']
     days = constraints['days']
     venues = constraints['venues']
+    print(f"Venues: {venues}")
     teams = constraints['teams']
     weeks = constraints['weeks']
     population = []

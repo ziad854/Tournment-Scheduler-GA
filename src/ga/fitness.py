@@ -39,6 +39,9 @@ def count_venue_conflicts(individual, constraints):
 
 
 
+from datetime import datetime, timedelta
+
+
 def count_rest_violations(individual, constraints):
     """
     Count the number of rest period violations in the schedule.
@@ -48,26 +51,26 @@ def count_rest_violations(individual, constraints):
     :param constraints: The constraints dictionary containing rest period rules.
     :return: The number of rest period violations.
     """
-    rest_periods = constraints.get("rest_periods", {})
-    min_rest_days = rest_periods.get("minimum_hours", 72) // 24  # Convert hours to days (3 days)
+    # Fetch minimum rest days from constraints or default to 3
+    min_rest_days = constraints.get("min_rest_days", 3)
 
     # Create a dictionary to track the last match day for each team
     last_played = {}
 
     violations = 0
 
-    # Sort matches by day and timeslot to process in chronological order
-    sorted_schedule = sorted(individual, key=lambda x: (x[3], x[4]))
+    # Sort matches by week, day, and timeslot to process in chronological order
+    sorted_schedule = sorted(individual, key=lambda x: (int(x[5]), x[3]))
 
     for match in sorted_schedule:
-        team1, team2, _, day, _, _ = match
+        team1, team2, _, day, _, week = match
 
         # Use TeamID to uniquely identify each team
         team1_id = team1['TeamID']
         team2_id = team2['TeamID']
 
-        # Convert day to a datetime object for comparison
-        current_date = day_to_date(day)
+        # Convert day and week to a datetime object for comparison
+        current_date = day_to_date(day, week)
 
         # Check rest period for team1
         if team1_id in last_played:
@@ -90,52 +93,28 @@ def count_rest_violations(individual, constraints):
     return violations
 
 
-
-def day_to_date(day):
+def day_to_date(day, week):
     """
-    Convert a day string (e.g., "Monday", "Tuesday") into a datetime object.
+    Convert a day string (e.g., "Monday", "Tuesday") and week number into a datetime object.
     Assumes the first day of the schedule is a Monday.
 
-    :param day: The day of the week as a string.
-    :return: A datetime object representing the day.
+    :param day: The day of the week as a string (e.g., "Monday").
+    :param week: The week number as a string (e.g., "1").
+    :return: A datetime object representing the date.
     """
     days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-    base_date = datetime(2025, 5, 5)  # Start of the schedule (example: a Monday)
+
+    # Check if the day is valid
+    if day not in days_of_week:
+        raise ValueError(f"Invalid day: {day}")
+
+    base_date = datetime(2025, 5, 5)  # Start of the schedule (example: Monday, May 5th, 2025)
     day_index = days_of_week.index(day)
-    return base_date + timedelta(days=day_index)
 
+    # Calculate the date, accounting for the week number
+    week_offset = (int(week) - 1) * 7
+    return base_date + timedelta(days=day_index + week_offset)
 
-# def calculate_time_difference(day1, timeslot1, day2, timeslot2):
-#     """
-#     Calculate the time difference in hours between two matches.
-#     This is a helper function to determine the time difference based on days and timeslots.
-#     :param day1: The first match day (e.g., "Monday").
-#     :param timeslot1: The first match timeslot (e.g., "09:00-11:00").
-#     :param day2: The second match day (e.g., "Tuesday").
-#     :param timeslot2: The second match timeslot (e.g., "14:00-16:00").
-#     :return: The time difference in hours.
-#     """
-#     # Mapping of days to their order in the week
-#     day_order = {
-#         "Monday": 0,
-#         "Tuesday": 1,
-#         "Wednesday": 2,
-#         "Thursday": 3,
-#         "Friday": 4,
-#         "Saturday": 5,
-#         "Sunday": 6
-#     }
-#     # Calculate day difference
-#     day_diff = day_order[day2] - day_order[day1]
-#     # Parse timeslot hours
-#     start_hour1 = int(timeslot1.split('-')[0].split(':')[0])
-#     end_hour1 = int(timeslot1.split('-')[1].split(':')[0])
-#     mid_hour1 = (start_hour1 + end_hour1) // 2  # Approximate match time midpoint
-#     start_hour2 = int(timeslot2.split('-')[0].split(':')[0])
-#     end_hour2 = int(timeslot2.split('-')[1].split(':')[0])
-#     mid_hour2 = (start_hour2 + end_hour2) // 2  # Approximate match time midpoint
-#     # Calculate time difference in hours
-#     return day_diff * 24 + (mid_hour2 - mid_hour1)
 
 
 
