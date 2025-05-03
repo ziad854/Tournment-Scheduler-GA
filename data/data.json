@@ -1,0 +1,50 @@
+{
+    "rest_periods": {
+        "minimum_hours": 72
+    },
+    "total_days": 30,
+    "time_slots": [
+        "09:00-11:00",
+        "11:30-13:30",
+        "14:00-16:00",
+        "16:30-18:30",
+        "19:00-21:00"
+    ],
+    "teams" : [
+        { "TeamID": 1, "TeamName": "Team Alpha" },
+        { "TeamID": 2, "TeamName": "Team Beta" },
+        { "TeamID": 3, "TeamName": "Team Gamma" },
+        { "TeamID": 4, "TeamName": "Team Delta" },
+        { "TeamID": 5, "TeamName": "Team Epsilon" },
+        { "TeamID": 6, "TeamName": "Team Zeta" },
+        { "TeamID": 7, "TeamName": "Team Eta" },
+        { "TeamID": 8, "TeamName": "Team Theta" }
+    ]
+    ,
+    "venues" : [
+        {"VenueID": 1, "VenueName": "Stadium A"},
+        {"VenueID": 2, "VenueName": "Stadium B"},
+        {"VenueID": 3, "VenueName": "Stadium C"}
+    ],
+
+    "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+    ],
+    "weeks":[
+        "1"
+        ,"2"
+        ,"3"
+        ,"4"
+    ],
+    "max_consecutive_matches": 2,
+    "team_constraints": {
+        "avoid_repeats": true,
+        "max_matches_per_day": 1
+    }
+}
