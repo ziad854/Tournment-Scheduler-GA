@@ -1,0 +1,22 @@
+{
+    "rest_periods": {
+        "minimum_hours": 24
+    },
+    "time_slots": [
+        "09:00-11:00",
+        "11:30-13:30",
+        "14:00-16:00",
+        "16:30-18:30",
+        "19:00-21:00"
+    ],
+    "venue_availability": {
+        "1": ["Monday", "Wednesday", "Friday"],
+        "2": ["Tuesday", "Thursday", "Saturday"],
+        "3": ["Monday", "Tuesday", "Friday"]
+    },
+    "max_consecutive_matches": 2,
+    "team_constraints": {
+        "avoid_repeats": true,
+        "max_matches_per_day": 1
+    }
+}

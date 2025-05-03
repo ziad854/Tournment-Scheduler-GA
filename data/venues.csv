@@ -1,0 +1,4 @@
+VenueID,VenueName,Capacity,AvailableDays
+1,Stadium A,5000,Monday,Wednesday,Friday
+2,Stadium B,3000,Tuesday,Thursday,Saturday
+3,Stadium C,4000,Monday,Tuesday,Friday
