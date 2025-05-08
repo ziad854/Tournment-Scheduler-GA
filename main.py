@@ -10,7 +10,7 @@ if __name__ == "__main__":
 
 
     # Run GA
-    best_population, best_fitness  = genetic_algorithm(constraints , population_size=2000 )
+    best_population, best_fitness  = genetic_algorithm(constraints , population_size=400 )
 
     # Visualize best schedule
     best_schedule = max(best_population, key=lambda s: evaluate_fitness(s, constraints))

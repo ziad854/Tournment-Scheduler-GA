@@ -23,7 +23,7 @@ def initialize_population(constraints, population_size ):
             time_slot = random.choice(time_slots)
             venue = random.choice(venues)
             day = random.choice(days)
-            time_slot = random.choice(time_slots)
+            #time_slot = random.choice(time_slots)
             week = random.choice(weeks)
             
             # Ensure constraints are respected (e.g., venue availability, no conflicts)

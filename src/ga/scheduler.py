@@ -11,7 +11,7 @@ def genetic_algorithm(constraints,population_size):
     best_fitness = max(fitness_scores)
     best_generation  = population
     generation = 0
-    while fitness_scores != 0  and generation < 50:
+    while fitness_scores != 0  and generation < 500:
         # Evaluate fitness
         fitness_scores = [evaluate_fitness(ind, constraints) for ind in population]
 
@@ -22,10 +22,9 @@ def genetic_algorithm(constraints,population_size):
         new_population = []
         for i in range(0, len(selected)-1, 2):
             parent1, parent2 = selected[i], selected[i+1]
-            # child1, child2 = crossover(parent1, parent2)
-            child1= crossover(parent1, parent2)
+            child1, child2 = crossover(parent1, parent2)
 
-            new_population.extend([child1])
+            new_population.extend([child1,child2])
 
         # Mutate
         population = [mutate(constraints,ind) for ind in new_population]
