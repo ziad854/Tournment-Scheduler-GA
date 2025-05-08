@@ -11,14 +11,14 @@
         "19:00-21:00"
     ],
     "teams" : [
-        { "TeamID": 1, "TeamName": "Team Alpha" },
-        { "TeamID": 2, "TeamName": "Team Beta" },
-        { "TeamID": 3, "TeamName": "Team Gamma" },
-        { "TeamID": 4, "TeamName": "Team Delta" },
-        { "TeamID": 5, "TeamName": "Team Epsilon" },
-        { "TeamID": 6, "TeamName": "Team Zeta" },
-        { "TeamID": 7, "TeamName": "Team Eta" },
-        { "TeamID": 8, "TeamName": "Team Theta" }
+        { "TeamID": 1, "TeamName": "Al Ahly" },
+        { "TeamID": 2, "TeamName": "Zamalek" },
+        { "TeamID": 3, "TeamName": "Pyramids FC" },
+        { "TeamID": 4, "TeamName": "Al Masry" },
+        { "TeamID": 5, "TeamName": "Ismaily" },
+        { "TeamID": 6, "TeamName": "ENPPI" },
+        { "TeamID": 7, "TeamName": "Smouha" },
+        { "TeamID": 8, "TeamName": "Ceramica Cleopatra" }
     ]
     ,
     "venues" : [
