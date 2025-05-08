@@ -6,7 +6,7 @@ from src.utils.analsyis import analyze_schedule
 
 if __name__ == "__main__":
     # Load input data
-    constraints = parse_input_data("data/data.json")
+    constraints = parse_input_data(r"D:\FCAI-HU\Level 3\semester2\Projects\EA_Project\Tournment-Scheduler-GA\data\data.json")
 
 
     # Run GA
@@ -15,12 +15,17 @@ if __name__ == "__main__":
     # Visualize best schedule
     best_schedule = max(best_population, key=lambda s: evaluate_fitness(s, constraints))
 
+    # all_played_all, no_simultaneous_matches = analyze_schedule(best_schedule)
+    # print(f"Every team plays every other team exactly once: {all_played_all}")
+    # print(f"No team plays multiple matches at the same time: {no_simultaneous_matches}")
     all_played_all, no_simultaneous_matches = analyze_schedule(best_schedule)
-    print(f"Every team plays every other team exactly once: {all_played_all}")
-    print(f"No team plays multiple matches at the same time: {no_simultaneous_matches}")
+    print(f"\nSchedule Analysis:")
+    print(f"- Every team plays every other team exactly once: {all_played_all}")
+    print(f"- No team plays multiple matches at the same time: {no_simultaneous_matches}")
+    print(f"- Overall fitness score: {evaluate_fitness(best_schedule, constraints)}")
 
     # number_of_teams = len(best_schedule['teams'])
     # print(f"Number of teams: {number_of_teams}")
     print(f"Best schedule fitness: {evaluate_fitness(best_schedule, constraints)}")
 
-    visualize_schedule(best_schedule)
+    visualize_schedule(best_schedule,constraints)
