@@ -1,7 +1,6 @@
-from src.ga.population import initialize_population
 from src.ga.fitness import evaluate_fitness
 from src.ga.operators import crossover, mutate, select_parents
-
+from src.ga.population import initialize_population
 
 def genetic_algorithm(constraints,population_size , genrations_size):
     # Initialize population
@@ -24,7 +23,8 @@ def genetic_algorithm(constraints,population_size , genrations_size):
         for i in range(0, len(selected)-1, 2):
             parent1, parent2 = selected[i], selected[i+1]
             child1, child2 = crossover(parent1, parent2)
-            new_population.extend([child1, child2])
+
+            new_population.extend([child1,child2])
 
         # Mutate
         mutated_population = [mutate(constraints,ind) for ind in new_population]

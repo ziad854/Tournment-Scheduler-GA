@@ -38,7 +38,6 @@ def crossover(parent1, parent2):
     return child1, child2
 
 
-
 def mutate(data, individual, mutation_rate=0.1):
     """
     Mutates the `day`, `venue`, and `week` attributes of a match in the individual's schedule.
@@ -99,3 +98,10 @@ def select_parents(population, fitness_scores, tournament_size=100):
         selected_parents.append(winner[0])
 
     return selected_parents
+
+
+def survivor_selection(old_population, offspring, fitness_old, fitness_offspring, elite_size=10):
+    combined = list(zip(old_population + offspring, fitness_old + fitness_offspring))
+    sorted_combined = sorted(combined, key=lambda x: x[1], reverse=True)
+    survivors = [ind for ind, _ in sorted_combined[:len(old_population)]]
+    return survivors

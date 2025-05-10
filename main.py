@@ -6,7 +6,7 @@ from src.utils.analsyis import *
 
 if __name__ == "__main__":
     # Load input data
-    constraints = parse_input_data("data/data.json")
+    constraints = parse_input_data(r"D:\FCAI-HU\Level 3\semester2\Projects\EA_Project\Tournment-Scheduler-GA\data\data.json")
 
 
     # Run GA
