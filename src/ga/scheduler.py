@@ -3,7 +3,7 @@ from src.ga.fitness import evaluate_fitness
 from src.ga.operators import crossover, mutate, select_parents
 
 
-def genetic_algorithm(constraints,population_size):
+def genetic_algorithm(constraints,population_size , genrations_size):
     # Initialize population
     population = initialize_population(constraints, population_size )
 
@@ -11,10 +11,10 @@ def genetic_algorithm(constraints,population_size):
 
     best_fitness = max(fitness_scores)
     best_generation  = population
+    idx_best = None
     generation = 0
-    while fitness_scores != 0  and generation < 500:
-        # Evaluate fitness
-        fitness_scores = [evaluate_fitness(ind, constraints) for ind in population]
+    while best_fitness != 0  and generation < genrations_size:
+
 
         # Select parents
         selected = select_parents(population, fitness_scores)
@@ -27,20 +27,37 @@ def genetic_algorithm(constraints,population_size):
             new_population.extend([child1, child2])
 
         # Mutate
-        population = [mutate(constraints,ind) for ind in new_population]
+        mutated_population = [mutate(constraints,ind) for ind in new_population]
 
-        # Replace old population
-        population = new_population
+        # Evaluate fitness
+        fitness_scores = []
+        for idx, ind in enumerate(mutated_population):
+            fitness = evaluate_fitness(ind, constraints)
+            if fitness > best_fitness:
+                best_fitness = fitness
+                idx_best = idx
+            fitness_scores.append(fitness)
+
+
 
         # Log best fitness
-        if best_fitness < max(fitness_scores):
-            best_generation = population
-            best_fitness = max(fitness_scores)
-            print(f"New best fitness found: {best_fitness}")
+        # current_best_fitness = max(fitness_scores)
+        # if current_best_fitness > best_fitness:  # Update if we find a better score
+        #     best_generation = mutated_population
+        #     best_fitness = current_best_fitness
+        #     print(f"New best fitness found: {best_fitness} at Generation {generation}")
+
+        # Stop early if perfect fitness is achieved
+        # if best_fitness == -1:
+        #     print(f"Generation {generation}: Best Fitness = {best_fitness}")
+        #     print(fitness_scores)
+        #     return mutated_population[idx_best], best_fitness
+        
         print(f"Generation {generation}: Best Fitness = {best_fitness}")
 
+        population = mutated_population
         generation += 1
 
-    return best_generation, best_fitness
+    return mutated_population[idx_best], best_fitness
 
 

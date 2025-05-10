@@ -2,7 +2,7 @@ from src.ga.fitness import evaluate_fitness
 from src.ga.scheduler import genetic_algorithm
 from src.utils.parser import parse_input_data
 from src.utils.visualizer import visualize_schedule
-from src.utils.analsyis import analyze_schedule
+from src.utils.analsyis import *
 
 if __name__ == "__main__":
     # Load input data
@@ -10,17 +10,19 @@ if __name__ == "__main__":
 
 
     # Run GA
-    best_population, best_fitness  = genetic_algorithm(constraints , population_size=2000 )
+    best_schedule, best_fitness = genetic_algorithm(constraints, population_size=100, genrations_size=100)
 
-    # Visualize best schedule
-    best_schedule = max(best_population, key=lambda s: evaluate_fitness(s, constraints))
+    print(f"Best fitness: {best_fitness}")
 
-    all_played_all, no_simultaneous_matches = analyze_schedule(best_schedule)
-    print(f"Every team plays every other team exactly once: {all_played_all}")
-    print(f"No team plays multiple matches at the same time: {no_simultaneous_matches}")
 
-    # number_of_teams = len(best_schedule['teams'])
-    # print(f"Number of teams: {number_of_teams}")
-    print(f"Best schedule fitness: {evaluate_fitness(best_schedule, constraints)}")
+    df = pd.DataFrame(best_schedule, columns=["Team1", "Team2", "Venue", "Day", "Time Slot", "Week"])
 
-    visualize_schedule(best_schedule)
+    # Extract TeamName from dictionaries
+    df['Team1'] = df['Team1'].apply(lambda x: x['TeamName'] if isinstance(x, dict) else x)
+    df['Team2'] = df['Team2'].apply(lambda x: x['TeamName'] if isinstance(x, dict) else x)
+    df['Venue'] = df['Venue'].apply(lambda x: x['VenueName'] if isinstance(x, dict) else x)
+
+    # Save to CSV
+    df.to_csv("best_schedule.csv", index=False)
+
+    visualize_schedule(sort_schedule(best_schedule))

@@ -1,39 +1,52 @@
 from datetime import datetime, timedelta
 from collections import defaultdict
+import pandas as pd
+
+
+
 
 def count_venue_conflicts(individual, constraints):
     """
-    Calculate the number of venue conflicts in the schedule.
+    Count venue conflicts based on the schedule.
 
-    A conflict occurs if the same venue is scheduled for more than one match
-    in the same time slot, on the same day, and in the same week.
-
-    :param individual: The schedule to evaluate.
-    :param constraints: The constraints dictionary containing venue availability.
-    :return: The number of venue conflicts.
+    :param individual: The schedule to evaluate, where each match contains:
+                       (team1, team2, venue, day, timeslot, week).
+    :param constraints: The constraints dictionary (not used in this implementation but can be extended).
+    :return: The number of venue conflicts and detailed conflict information.
     """
-    conflicts = 0
+    # Convert the schedule to a DataFrame for easier manipulation
+    schedule_data = [
+        {
+            "Team1": match[0]["TeamID"],
+            "Team2": match[1]["TeamID"],
+            "Venue": match[2]["VenueID"],
+            "Day": match[3],
+            "Timeslot": match[4],
+            "Week": match[5]
+        }
+        for match in individual
+    ]
+    df = pd.DataFrame(schedule_data)
 
-    # Group matches by venue, day, week, and timeslot
-    venue_day_week_timeslot_map = {}
-    for match in individual:
-        _, _, venue, day, timeslot, week = match  # Unpack match details
-        venue_id = venue["VenueID"]
+    # Combine Venue, Week, and Day into a single column
+    df['VenueKey'] = df.apply(lambda row: (row['Venue'], row['Week'], row['Day']), axis=1)
 
-        # Create a unique key for (venue, day, week, timeslot)
-        key = (venue_id, day, week, timeslot)
+    # Count occurrences of each (Venue, Week, Day)
+    venue_usage_counts = df['VenueKey'].value_counts()
 
-        if key not in venue_day_week_timeslot_map:
-            venue_day_week_timeslot_map[key] = 0
-        venue_day_week_timeslot_map[key] += 1
+    # Identify conflicts (more than one match scheduled for the same (Venue, Week, Day))
+    venue_violations = venue_usage_counts[venue_usage_counts > 1]
 
-    # Count conflicts (more than one match in the same timeslot, day, week, and venue)
-    for key, count in venue_day_week_timeslot_map.items():
-        if count > 1:
-            conflicts += count - 1  # Add conflicts for overlapping matches
+    # Total conflicts (subtract 1 for each over-scheduled venue)
+    total_venue_violations = sum(venue_violations - 1)
 
-    return conflicts
+    # Detailed conflict information
+    violation_details = venue_violations.reset_index()
+    violation_details.columns = ['(Venue, Week, Day)', 'MatchesScheduled']
 
+
+
+    return total_venue_violations
 
 
 
@@ -42,122 +55,101 @@ def count_venue_conflicts(individual, constraints):
 from datetime import datetime, timedelta
 
 
-def count_rest_violations(individual, constraints):
+
+
+import pandas as pd
+
+def count_rest_violations(schedule, constraints):
     """
-    Count the number of rest period violations in the schedule.
+    Count rest period violations for teams using a pandas-based approach.
 
-    :param individual: The schedule to evaluate.
-                       Example: [({'TeamID': 1, 'TeamName': 'Team Alpha'}, {'TeamID': 4, 'TeamName': 'Team Delta'}, venue_id, day, timeslot, week), ...]
-    :param constraints: The constraints dictionary containing rest period rules.
-    :return: The number of rest period violations.
+    :param schedule: The schedule to evaluate, where each match is a tuple:
+                     (team1, team2, venue, day, timeslot, week).
+    :param constraints: The constraints dictionary.
+    :return: The total number of rest period violations.
     """
-    # Fetch minimum rest days from constraints or default to 3
-    min_rest_days = constraints.get("min_rest_days", 3)
+    # Minimum rest period in days (default to 3 days if not specified)
+    min_rest_days = constraints.get("rest_periods", {}).get("minimum_hours", 72) // 24
 
-    # Create a dictionary to track the last match day for each team
-    last_played = {}
+    # Day name to index
+    day_to_index = {
+        "Monday": 0, "Tuesday": 1, "Wednesday": 2,
+        "Thursday": 3, "Friday": 4, "Saturday": 5, "Sunday": 6
+    }
 
-    violations = 0
+    schedule_data = [
+        {
+            "Team1": match[0]["TeamID"],
+            "Team2": match[1]["TeamID"],
+            "Venue": match[2]["VenueID"],
+            "Day": match[3],
+            "Timeslot": match[4],
+            "Week": int(match[5]) 
+        }
+        for match in schedule
+    ]
+    df = pd.DataFrame(schedule_data)
 
-    # Sort matches by week, day, and timeslot to process in chronological order
-    sorted_schedule = sorted(individual, key=lambda x: (int(x[5]), x[3]))
-
-    for match in sorted_schedule:
-        team1, team2, _, day, _, week = match
-
-        # Use TeamID to uniquely identify each team
-        team1_id = team1['TeamID']
-        team2_id = team2['TeamID']
-
-        # Convert day and week to a datetime object for comparison
-        current_date = day_to_date(day, week)
-
-        # Check rest period for team1
-        if team1_id in last_played:
-            last_date = last_played[team1_id]
-            days_passed = (current_date - last_date).days
-            if days_passed < min_rest_days:
-                violations += 1
-
-        # Check rest period for team2
-        if team2_id in last_played:
-            last_date = last_played[team2_id]
-            days_passed = (current_date - last_date).days
-            if days_passed < min_rest_days:
-                violations += 1
-
-        # Update last played time for both teams
-        last_played[team1_id] = current_date
-        last_played[team2_id] = current_date
-
-    return violations
+    df_team1 = df[['Week', 'Day', 'Team1']].rename(columns={'Team1': 'Team'})
+    df_team2 = df[['Week', 'Day', 'Team2']].rename(columns={'Team2': 'Team'})
+    df_all = pd.concat([df_team1, df_team2])
 
 
-def day_to_date(day, week):
+    df_all['DayIndex'] = df_all['Day'].map(day_to_index)
+    df_all['AbsoluteDay'] = df_all['Week'] * 7 + df_all['DayIndex']
+
+
+    total_violations = 0
+    for team, group in df_all.groupby('Team'):
+        sorted_days = sorted(group['AbsoluteDay'].tolist())
+        for i in range(1, len(sorted_days)):
+            if sorted_days[i] - sorted_days[i - 1] < min_rest_days:
+                total_violations += 1
+
+    return total_violations
+
+
+
+
+def count_time_imbalances(schedule, constraints=None):
     """
-    Convert a day string (e.g., "Monday", "Tuesday") and week number into a datetime object.
-    Assumes the first day of the schedule is a Monday.
-
-    :param day: The day of the week as a string (e.g., "Monday").
-    :param week: The week number as a string (e.g., "1").
-    :return: A datetime object representing the date.
+    Count time imbalances where a team is scheduled to play more than once
+    on the same day (same week and day) using a pandas-based approach.
+    
+    :param schedule: The schedule to evaluate, where each match is a tuple:
+                     (team1, team2, venue, day, timeslot, week).
+    :param constraints: The constraints dictionary (not used in this implementation but can be extended).
+    :return: The total number of time imbalances (day-level scheduling conflicts).
     """
-    days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    # Step 1: Convert the schedule to a DataFrame
+    schedule_data = [
+        {
+            "Team1": match[0]["TeamID"],
+            "Team2": match[1]["TeamID"],
+            "Day": match[3],
+            "Week": int(match[5])  # Ensure week is an integer
+        }
+        for match in schedule
+    ]
+    df = pd.DataFrame(schedule_data)
 
-    # Check if the day is valid
-    if day not in days_of_week:
-        raise ValueError(f"Invalid day: {day}")
+    # Step 2: Create a unified list of matches for each team
+    df_team1 = df[['Week', 'Day', 'Team1']].rename(columns={'Team1': 'Team'})
+    df_team2 = df[['Week', 'Day', 'Team2']].rename(columns={'Team2': 'Team'})
+    df_all = pd.concat([df_team1, df_team2])
 
-    base_date = datetime(2025, 5, 5)  # Start of the schedule (example: Monday, May 5th, 2025)
-    day_index = days_of_week.index(day)
+    # Step 3: Count occurrences of each (week, day) for each team
+    df_all['DailyKey'] = df_all.apply(lambda row: (row['Week'], row['Day']), axis=1)
+    daily_counts = df_all.groupby(['Team', 'DailyKey']).size()
 
-    # Calculate the date, accounting for the week number
-    week_offset = (int(week) - 1) * 7
-    return base_date + timedelta(days=day_index + week_offset)
+    # Step 4: Identify imbalances (where a team plays more than once on the same day)
+    imbalances = daily_counts[daily_counts > 1]
 
-
-
-
-
-def count_time_imbalances(individual):
-    """
-    Count time imbalances for teams based on match times.
-
-    :param schedule: The schedule to evaluate.
-                     Example: [({'TeamID': 1, 'TeamName': 'Team Alpha'}, {'TeamID': 4, 'TeamName': 'Team Delta'}, 
-                               {'VenueID': 3, 'VenueName': 'Stadium C'}, 'Monday', '19:00-21:00', '1'), ...]
-    :return: A score representing time imbalances (higher score = more imbalances).
-    """
-    # Dictionary to track time slots for each team
-    team_time_slots = defaultdict(list)
-
-    # Populate the time slots for each team
-    for match in individual:
-        team1, team2, _, _, timeslot, _ = match  # Unpack the schedule tuple
-        team_time_slots[team1['TeamID']].append(timeslot)
-        team_time_slots[team2['TeamID']].append(timeslot)
-
-    # Calculate imbalance for each team
-    imbalance_score = 0
-    for team_id, timeslots in team_time_slots.items():
-        # Count the frequency of each timeslot
-        timeslot_frequency = defaultdict(int)
-        for timeslot in timeslots:
-            timeslot_frequency[timeslot] += 1
-
-        # Handle edge case where no matches are scheduled for the team
-        if len(timeslot_frequency) == 0:
-            continue
-
-        # A perfectly balanced schedule would have similar frequencies across all timeslots
-        total_matches = len(timeslots)
-        avg_frequency = total_matches / len(timeslot_frequency)
-
-        # Calculate imbalance as deviation from the average frequency
-        imbalance = sum(abs(freq - avg_frequency) for freq in timeslot_frequency.values())
-        imbalance_score += imbalance
+    # Step 5: Calculate total imbalance score
+    imbalance_score = sum(imbalances - 1)
 
     return imbalance_score
+
 
 def evaluate_fitness(individual, constraints):
     """
@@ -172,9 +164,9 @@ def evaluate_fitness(individual, constraints):
     score -= count_venue_conflicts(individual, constraints)
 
     # Example: Ensure fair rest periods
-    score -= count_rest_violations(individual, constraints)
+    score -= count_rest_violations(individual, constraints) 
 
     # Example: Balance game times
-    # score -= count_time_imbalances(individual)
+    score -= count_time_imbalances(individual, constraints) 
 
     return score

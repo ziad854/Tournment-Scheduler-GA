@@ -11,21 +11,21 @@
         "19:00-21:00"
     ],
     "teams" : [
-        { "TeamID": 1, "TeamName": "Team Alpha" },
-        { "TeamID": 2, "TeamName": "Team Beta" },
-        { "TeamID": 3, "TeamName": "Team Gamma" },
-        { "TeamID": 4, "TeamName": "Team Delta" },
-        { "TeamID": 5, "TeamName": "Team Epsilon" },
-        { "TeamID": 6, "TeamName": "Team Zeta" },
-        { "TeamID": 7, "TeamName": "Team Eta" },
-        { "TeamID": 8, "TeamName": "Team Theta" }
+        { "TeamID": 1, "TeamName": "Manchester United" },
+        { "TeamID": 2, "TeamName": "Manchester City" },
+        { "TeamID": 3, "TeamName": "Liverpool" },
+        { "TeamID": 4, "TeamName": "Chelsea" },
+        { "TeamID": 5, "TeamName": "Arsenal" },
+        { "TeamID": 6, "TeamName": "Tottenham Hotspur" },
+        { "TeamID": 7, "TeamName": "Newcastle United" },
+        { "TeamID": 8, "TeamName": "Aston Villa" }
     ]
     ,
     "venues" : [
-        {"VenueID": 1, "VenueName": "Stadium A"},
-        {"VenueID": 2, "VenueName": "Stadium B"},
-        {"VenueID": 3, "VenueName": "Stadium C"}
-
+        { "VenueID": 1, "VenueName": "Old Trafford" },
+        { "VenueID": 2, "VenueName": "Etihad Stadium" },
+        { "VenueID": 3, "VenueName": "Anfield" },
+        { "VenueID": 4, "VenueName": "Stamford Bridge" }
 
     ],
 

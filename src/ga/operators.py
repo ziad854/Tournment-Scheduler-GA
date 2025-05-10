@@ -1,7 +1,7 @@
 import numpy as np
 import random
 
-# random.seed(42)  
+random.seed(42)  
 
 
 import numpy as np
@@ -29,11 +29,11 @@ def crossover(parent1, parent2):
         new_venue1, new_venue2 = (match1[2], match2[2]) if np.random.rand() < 0.5 else (match2[2], match1[2])
         new_day1, new_day2 = (match1[3], match2[3]) if np.random.rand() < 0.5 else (match2[3], match1[3])
         # new_time_slot1, new_time_slot2 = (match1[4], match2[4]) if np.random.rand() < 0.5 else (match2[4], match1[4])
-        # new_week1, new_week2 = (match1[5], match2[5]) if np.random.rand() < 0.5 else (match2[5], match1[5])
+        new_week1, new_week2 = (match1[5], match2[5]) if np.random.rand() < 0.5 else (match2[5], match1[5])
 
         # Construct offspring matches with preserved teams
-        child1.append((match1[0], match1[1], new_venue1, new_day1, match1[4],  match1[5]))
-        child2.append((match2[0], match2[1], new_venue2, new_day2, match2[4], match2[5]))
+        child1.append((match1[0], match1[1], new_venue1, new_day1, match1[4],  new_week1))
+        child2.append((match2[0], match2[1], new_venue2, new_day2, match2[4], new_week2))
 
     return child1, child2
 
@@ -78,7 +78,7 @@ def mutate(data, individual, mutation_rate=0.1):
 
     return individual
 
-def select_parents(population, fitness_scores, tournament_size=3):
+def select_parents(population, fitness_scores, tournament_size=100):
     """
     Selects parents from the population using tournament selection.
 
