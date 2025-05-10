@@ -5,7 +5,7 @@ import pandas as pd
 
 
 
-def count_venue_conflicts(individual, constraints):
+def count_venue_conflicts(df, constraints):
     """
     Count venue conflicts based on the schedule.
 
@@ -15,18 +15,18 @@ def count_venue_conflicts(individual, constraints):
     :return: The number of venue conflicts and detailed conflict information.
     """
     # Convert the schedule to a DataFrame for easier manipulation
-    schedule_data = [
-        {
-            "Team1": match[0]["TeamID"],
-            "Team2": match[1]["TeamID"],
-            "Venue": match[2]["VenueID"],
-            "Day": match[3],
-            "Timeslot": match[4],
-            "Week": match[5]
-        }
-        for match in individual
-    ]
-    df = pd.DataFrame(schedule_data)
+    # schedule_data = [
+    #     {
+    #         "Team1": match[0]["TeamID"],
+    #         "Team2": match[1]["TeamID"],
+    #         "Venue": match[2]["VenueID"],
+    #         "Day": match[3],
+    #         "Timeslot": match[4],
+    #         "Week": match[5]
+    #     }
+    #     for match in individual
+    # ]
+    # df = pd.DataFrame(schedule_data)
 
     # Combine Venue, Week, and Day into a single column
     df['VenueKey'] = df.apply(lambda row: (row['Venue'], row['Week'], row['Day']), axis=1)
@@ -59,7 +59,7 @@ from datetime import datetime, timedelta
 
 import pandas as pd
 
-def count_rest_violations(schedule, constraints):
+def count_rest_violations(df, constraints):
     """
     Count rest period violations for teams using a pandas-based approach.
 
@@ -77,33 +77,40 @@ def count_rest_violations(schedule, constraints):
         "Thursday": 3, "Friday": 4, "Saturday": 5, "Sunday": 6
     }
 
-    schedule_data = [
-        {
-            "Team1": match[0]["TeamID"],
-            "Team2": match[1]["TeamID"],
-            "Venue": match[2]["VenueID"],
-            "Day": match[3],
-            "Timeslot": match[4],
-            "Week": int(match[5]) 
-        }
-        for match in schedule
-    ]
-    df = pd.DataFrame(schedule_data)
+    # schedule_data = [
+    #     {
+    #         "Team1": match[0]["TeamID"],
+    #         "Team2": match[1]["TeamID"],
+    #         "Venue": match[2]["VenueID"],
+    #         "Day": match[3],
+    #         "Timeslot": match[4],
+    #         "Week": int(match[5]) 
+    #     }
+    #     for match in schedule
+    # ]
+    # df = pd.DataFrame(schedule_data)
 
     df_team1 = df[['Week', 'Day', 'Team1']].rename(columns={'Team1': 'Team'})
     df_team2 = df[['Week', 'Day', 'Team2']].rename(columns={'Team2': 'Team'})
     df_all = pd.concat([df_team1, df_team2])
 
+    # Convert Week to int
+    df_all['Week'] = df_all['Week'].astype(int)
 
+    # Add DayIndex and AbsoluteDay
     df_all['DayIndex'] = df_all['Day'].map(day_to_index)
     df_all['AbsoluteDay'] = df_all['Week'] * 7 + df_all['DayIndex']
+
+
+    # df_all['DayIndex'] = df_all['Day'].map(day_to_index)
+    # df_all['AbsoluteDay'] = df_all['Week'] * 7 + df_all['DayIndex']
 
 
     total_violations = 0
     for team, group in df_all.groupby('Team'):
         sorted_days = sorted(group['AbsoluteDay'].tolist())
         for i in range(1, len(sorted_days)):
-            if sorted_days[i] - sorted_days[i - 1] < min_rest_days:
+            if sorted_days[i] - sorted_days[i - 1] < 3:
                 total_violations += 1
 
     return total_violations
@@ -158,15 +165,20 @@ def evaluate_fitness(individual, constraints):
     :param constraints: Constraints to consider.
     :return: Fitness score (higher is better).
     """
+
+    df = pd.DataFrame(individual, columns=["Team1", "Team2", "Venue", "Day", "Time Slot", "Week"])
+    df['Team1'] = df['Team1'].apply(lambda x: x['TeamName'] if isinstance(x, dict) else x)
+    df['Team2'] = df['Team2'].apply(lambda x: x['TeamName'] if isinstance(x, dict) else x)
+    df['Venue'] = df['Venue'].apply(lambda x: x['VenueName'] if isinstance(x, dict) else x)
     score = 0
 
     # Example: Minimize venue conflicts
-    score -= count_venue_conflicts(individual, constraints)
+    score -= count_venue_conflicts(df, constraints)
 
     # Example: Ensure fair rest periods
-    score -= count_rest_violations(individual, constraints) 
+    score -= count_rest_violations(df, constraints) 
 
     # Example: Balance game times
-    score -= count_time_imbalances(individual, constraints) 
+    # score -= count_time_imbalances(individual, constraints) 
 
     return score

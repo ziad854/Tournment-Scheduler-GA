@@ -6,7 +6,7 @@ from src.utils.analsyis import *
 
 if __name__ == "__main__":
     # Load input data
-    constraints = parse_input_data(r"D:\FCAI-HU\Level 3\semester2\Projects\EA_Project\Tournment-Scheduler-GA\data\data.json")
+    constraints = parse_input_data("data\data.json")
 
 
     # Run GA
@@ -25,4 +25,4 @@ if __name__ == "__main__":
     # Save to CSV
     df.to_csv("best_schedule.csv", index=False)
 
-    visualize_schedule(sort_schedule(best_schedule))
+    visualize_schedule(sort_schedule(best_schedule),constraints)

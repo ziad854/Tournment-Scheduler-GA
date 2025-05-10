@@ -1,6 +1,7 @@
 from src.ga.fitness import evaluate_fitness
 from src.ga.operators import crossover, mutate, select_parents
 from src.ga.population import initialize_population
+import pandas as pd
 
 def genetic_algorithm(constraints,population_size , genrations_size):
     # Initialize population
@@ -29,6 +30,9 @@ def genetic_algorithm(constraints,population_size , genrations_size):
         # Mutate
         mutated_population = [mutate(constraints,ind) for ind in new_population]
 
+
+
+
         # Evaluate fitness
         fitness_scores = []
         for idx, ind in enumerate(mutated_population):
@@ -53,7 +57,7 @@ def genetic_algorithm(constraints,population_size , genrations_size):
         #     print(fitness_scores)
         #     return mutated_population[idx_best], best_fitness
         
-        print(f"Generation {generation}: Best Fitness = {best_fitness}")
+        print(f"Generation {generation}: Best Fitness = {max(fitness_scores)}")
 
         population = mutated_population
         generation += 1
