@@ -28,7 +28,7 @@ def select_parents(population, fitness_scores, tournament_size=100):
 
 
 
-def crossover(parent1, parent2): # Order Crossover
+def order_crossover(parent1, parent2): 
     ##############################################################################
  
     assert len(parent1) == len(parent2), "Parents must have the same number of matches"
@@ -68,7 +68,58 @@ def crossover(parent1, parent2): # Order Crossover
     return child1, child2
 
 
-def survivor_selection(old_population, offspring, fitness_old, fitness_offspring, elite_size=10):
+
+
+
+
+def PMX_Crossover (parent1, parent2): 
+    ##############################################################################
+    """
+    Partially Mapped Crossover (PMX) for genetic algorithms.
+
+    :param parent1: The first parent (list of genes).
+    :param parent2: The second parent (list of genes).
+    :return: Two offspring generated from the parents.
+    """
+    assert len(parent1) == len(parent2)
+
+    size = len(parent1)
+
+    # Step 1: Select two random crossover points
+    start, end = sorted(random.sample(range(size), 2))
+
+    # Initialize children as copies of the parents
+    child1 = parent1[:]
+    child2 = parent2[:]
+
+    # Step 2: Copy the segment between the crossover points from parent1 to child1 and parent2 to child2
+    child1[start:end] = parent2[start:end]
+    child2[start:end] = parent1[start:end]
+
+    # Step 3: Resolve conflicts in child1
+    for i in range(start, end):
+        gene = parent2[i]
+        if gene in child1[start:end]:
+            continue
+        while gene in child1:
+            gene = parent2[parent1.index(gene)]
+        child1[child1.index(parent2[i])] = gene
+
+    # Step 4: Resolve conflicts in child2
+    for i in range(start, end):
+        gene = parent1[i]
+        if gene in child2[start:end]:
+            continue
+        while gene in child2:
+            gene = parent1[parent2.index(gene)]
+        child2[child2.index(parent1[i])] = gene
+
+    return child1, child2
+
+
+
+
+def elitism (old_population, offspring, fitness_old, fitness_offspring, elite_size=10):
     """
     Survivor selection using elitism with random replacement.
 
@@ -99,16 +150,16 @@ def survivor_selection(old_population, offspring, fitness_old, fitness_offspring
 
 
 
-# def survivor_selection(old_population, offspring, fitness_old, fitness_offspring, elite_size=10):
-#     combined = list(zip(old_population + offspring, fitness_old + fitness_offspring))
-#     sorted_combined = sorted(combined, key=lambda x: x[1], reverse=True)
-#     survivors = [ind for ind, _ in sorted_combined[:len(old_population)]]
-#     return survivors
+def survivor_selection (old_population, offspring, fitness_old, fitness_offspring, elite_size=10):
+    combined = list(zip(old_population + offspring, fitness_old + fitness_offspring))
+    sorted_combined = sorted(combined, key=lambda x: x[1], reverse=True)
+    survivors = [ind for ind, _ in sorted_combined[:len(old_population)]]
+    return survivors
 
 
 
 
-def mutate(data, individual, mutation_rate=0.1): # Attribute-level Random Mutation
+def Attribute_level_Random_Mutation(data, individual, mutation_rate=0.1): # Attribute-level Random Mutation
     ##############################################################################
     """
     Mutates the `day`, `venue`, and `week` attributes of a match in the individual's schedule.
@@ -123,7 +174,7 @@ def mutate(data, individual, mutation_rate=0.1): # Attribute-level Random Mutati
     possible_weeks = data['weeks']
 
     for idx in range(len(individual)):
-        if random.random() < mutation_rate:  # Only mutate with the given probability
+        if random.random() < mutation_rate: 
             # Get the current match
             match = individual[idx]
 
@@ -138,12 +189,12 @@ def mutate(data, individual, mutation_rate=0.1): # Attribute-level Random Mutati
 
             # Update the match while keeping teams unchanged
             individual[idx] = (
-                match[0],  # Team 1
-                match[1],  # Team 2
-                new_venue,  # New venue
-                new_day,  # New day
-                match[4],  # Keep time slot unchanged
-                new_week   # New week
+                match[0], # Keep team 1 unchanged
+                match[1], # Keep team 2 unchanged
+                new_venue,  
+                new_day, 
+                match[4],  
+                new_week  
             )
 
     return individual
@@ -151,28 +202,28 @@ def mutate(data, individual, mutation_rate=0.1): # Attribute-level Random Mutati
 
 
 
-# def mutate(data, individual, mutation_rate=0.1):# mutation by swapping
-#     possible_days = data['days']
-#     possible_venues = data['venues']
-#     possible_weeks = data['weeks']
+def Swapping_mutate(data, individual, mutation_rate=0.1):
+    possible_days = data['days']
+    possible_venues = data['venues']
+    possible_weeks = data['weeks']
 
-#     for idx in range(len(individual)):
-#         if random.random() < mutation_rate:
-#             match = individual[idx]
+    for idx in range(len(individual)):
+        if random.random() < mutation_rate:
+            match = individual[idx]
 
-#             new_day = random.choice(possible_days)
-#             new_venue = random.choice(possible_venues)
-#             new_week = random.choice(possible_weeks)
+            new_day = random.choice(possible_days)
+            new_venue = random.choice(possible_venues)
+            new_week = random.choice(possible_weeks)
 
-#             individual[idx] = (
-#                 match[0],
-#                 match[1],
-#                 new_venue,
-#                 new_day,
-#                 match[4],
-#                 new_week
-#             )
+            individual[idx] = (
+                match[0],
+                match[1],
+                new_venue,
+                new_day,
+                match[4],
+                new_week
+            )
 
-#     return individual
+    return individual
 
 
