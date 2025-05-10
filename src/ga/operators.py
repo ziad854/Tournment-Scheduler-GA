@@ -1,44 +1,115 @@
 import numpy as np
 import random
 
-random.seed(42)  
 
-
-import numpy as np
-
-def crossover(parent1, parent2):
+def select_parents(population, fitness_scores, tournament_size=100):
     """
-    Perform uniform crossover between two parents while preserving team pairings.
+    Selects parents from the population using tournament selection.
 
-    :param parent1: The first parent's schedule (list of matches).
-    :param parent2: The second parent's schedule (list of matches).
-    :return: Two offspring schedules as lists.
+    :param population: List of individuals in the current population.
+    :param fitness_scores: List of fitness scores corresponding to the population.
+    :param tournament_size: Number of individuals to compete in each tournament.
+    :return: List of selected parents.
     """
+    selected_parents = []
+
+    for _ in range(len(population)):
+        # Randomly select individuals for the tournament
+        tournament_indices = np.random.choice(len(population), tournament_size, replace=False)
+        tournament = [(population[i], fitness_scores[i]) for i in tournament_indices]
+
+        # Select the individual with the highest fitness score
+        winner = max(tournament, key=lambda x: x[1])
+        selected_parents.append(winner[0])
+
+    return selected_parents
+
+
+
+
+
+def crossover(parent1, parent2): # Order Crossover
+    ##############################################################################
+ 
     assert len(parent1) == len(parent2), "Parents must have the same number of matches"
 
-    child1 = []
-    child2 = []
+    size = len(parent1)
+    
+    # Step 1: Select random crossover points
+    start, end = sorted(random.sample(range(size), 2))
 
+    # Initialize children
+    child1 = [None] * size
+    child2 = [None] * size
 
-    for match1, match2 in zip(parent1, parent2):
-        # Ensure the teams are the same in both matches (teams are fixed and won't change)
+    # Copy the segment from parent1 into child1 and from parent2 into child2
+    child1[start:end] = parent1[start:end]
+    child2[start:end] = parent2[start:end]
 
+    # Step 2: Fill the remaining positions in both children using a toroidal wraparound
+    # Fill child1 using elements from parent2 that are not already in child1
+    p2_index = end
+    for i in range(size):
+        if child1[i] is None:  # Find the first empty position in child1
+            while parent2[p2_index % size] in child1:
+                p2_index += 1
+            child1[i] = parent2[p2_index % size]
+            p2_index += 1
 
-
-        # Perform uniform crossover for non-team attributes
-        new_venue1, new_venue2 = (match1[2], match2[2]) if np.random.rand() < 0.5 else (match2[2], match1[2])
-        new_day1, new_day2 = (match1[3], match2[3]) if np.random.rand() < 0.5 else (match2[3], match1[3])
-        # new_time_slot1, new_time_slot2 = (match1[4], match2[4]) if np.random.rand() < 0.5 else (match2[4], match1[4])
-        new_week1, new_week2 = (match1[5], match2[5]) if np.random.rand() < 0.5 else (match2[5], match1[5])
-
-        # Construct offspring matches with preserved teams
-        child1.append((match1[0], match1[1], new_venue1, new_day1, match1[4],  new_week1))
-        child2.append((match2[0], match2[1], new_venue2, new_day2, match2[4], new_week2))
+    # Fill child2 using elements from parent1 that are not already in child2
+    p1_index = end
+    for i in range(size):
+        if child2[i] is None:  # Find the first empty position in child2
+            while parent1[p1_index % size] in child2:
+                p1_index += 1
+            child2[i] = parent1[p1_index % size]
+            p1_index += 1
 
     return child1, child2
 
 
-def mutate(data, individual, mutation_rate=0.1):
+def survivor_selection(old_population, offspring, fitness_old, fitness_offspring, elite_size=10):
+    """
+    Survivor selection using elitism with random replacement.
+
+    :param old_population: The current population (list of individuals).
+    :param offspring: The offspring generated in the current generation.
+    :param fitness_old: Fitness values of the old population.
+    :param fitness_offspring: Fitness values of the offspring.
+    :param elite_size: Number of top individuals to preserve.
+    :return: The new population for the next generation.
+    """
+    # Combine old population and offspring
+    combined_population = old_population + offspring
+    combined_fitness = fitness_old + fitness_offspring
+
+    # Sort combined population by fitness (descending order)
+    sorted_indices = sorted(range(len(combined_fitness)), key=lambda i: combined_fitness[i], reverse=True)
+    sorted_population = [combined_population[i] for i in sorted_indices]
+
+    # Select the top `elite_size` individuals
+    new_population = sorted_population[:elite_size]
+
+    # Fill the rest of the population with randomly selected individuals
+    remaining_slots = len(old_population) - elite_size
+    random_indices = random.sample(range(elite_size, len(sorted_population)), remaining_slots)
+    new_population.extend([sorted_population[i] for i in random_indices])
+
+    return new_population
+
+
+
+# def survivor_selection(old_population, offspring, fitness_old, fitness_offspring, elite_size=10):
+#     combined = list(zip(old_population + offspring, fitness_old + fitness_offspring))
+#     sorted_combined = sorted(combined, key=lambda x: x[1], reverse=True)
+#     survivors = [ind for ind, _ in sorted_combined[:len(old_population)]]
+#     return survivors
+
+
+
+
+def mutate(data, individual, mutation_rate=0.1): # Attribute-level Random Mutation
+    ##############################################################################
     """
     Mutates the `day`, `venue`, and `week` attributes of a match in the individual's schedule.
 
@@ -77,31 +148,31 @@ def mutate(data, individual, mutation_rate=0.1):
 
     return individual
 
-def select_parents(population, fitness_scores, tournament_size=100):
-    """
-    Selects parents from the population using tournament selection.
-
-    :param population: List of individuals in the current population.
-    :param fitness_scores: List of fitness scores corresponding to the population.
-    :param tournament_size: Number of individuals to compete in each tournament.
-    :return: List of selected parents.
-    """
-    selected_parents = []
-
-    for _ in range(len(population)):
-        # Randomly select individuals for the tournament
-        tournament_indices = np.random.choice(len(population), tournament_size, replace=False)
-        tournament = [(population[i], fitness_scores[i]) for i in tournament_indices]
-
-        # Select the individual with the highest fitness score
-        winner = max(tournament, key=lambda x: x[1])
-        selected_parents.append(winner[0])
-
-    return selected_parents
 
 
-def survivor_selection(old_population, offspring, fitness_old, fitness_offspring, elite_size=10):
-    combined = list(zip(old_population + offspring, fitness_old + fitness_offspring))
-    sorted_combined = sorted(combined, key=lambda x: x[1], reverse=True)
-    survivors = [ind for ind, _ in sorted_combined[:len(old_population)]]
-    return survivors
+
+# def mutate(data, individual, mutation_rate=0.1):# mutation by swapping
+#     possible_days = data['days']
+#     possible_venues = data['venues']
+#     possible_weeks = data['weeks']
+
+#     for idx in range(len(individual)):
+#         if random.random() < mutation_rate:
+#             match = individual[idx]
+
+#             new_day = random.choice(possible_days)
+#             new_venue = random.choice(possible_venues)
+#             new_week = random.choice(possible_weeks)
+
+#             individual[idx] = (
+#                 match[0],
+#                 match[1],
+#                 new_venue,
+#                 new_day,
+#                 match[4],
+#                 new_week
+#             )
+
+#     return individual
+
+

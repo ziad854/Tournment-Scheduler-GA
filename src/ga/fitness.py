@@ -54,9 +54,6 @@ def count_venue_conflicts(df, constraints):
 
 from datetime import datetime, timedelta
 
-
-
-
 import pandas as pd
 
 def count_rest_violations(df, constraints):

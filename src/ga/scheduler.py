@@ -3,17 +3,17 @@ from src.ga.operators import crossover, mutate, select_parents
 from src.ga.population import initialize_population
 import pandas as pd
 
-def genetic_algorithm(constraints,population_size , genrations_size):
+def genetic_algorithm(constraints,population_size , generations_size):
     # Initialize population
-    population = initialize_population(constraints, population_size )
+    population = initialize_population(constraints, population_size)
 
     fitness_scores = [evaluate_fitness(ind, constraints) for ind in population]
 
     best_fitness = max(fitness_scores)
-    best_generation  = population
+    best_generation = population
     idx_best = None
     generation = 0
-    while best_fitness != 0  and generation < genrations_size:
+    while best_fitness != 0  and generation < generations_size:
 
 
         # Select parents
