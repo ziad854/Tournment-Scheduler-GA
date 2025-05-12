@@ -178,8 +178,3 @@ The generated schedule includes:
   streamlit
   ```
 
----
-
-## 💬 Support
-
-For any issues or questions, please open an issue in this repository or contact [ziad854](https://github.com/ziad854).
