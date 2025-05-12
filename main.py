@@ -1,28 +1,58 @@
-from src.ga.fitness import evaluate_fitness
+import pandas as pd
 from src.ga.scheduler import genetic_algorithm
-from src.utils.parser import parse_input_data
 from src.utils.visualizer import visualize_schedule
-from src.utils.analsyis import *
+from src.utils.helper import sort_schedule , parse_input_data
+
+
 
 if __name__ == "__main__":
     # Load input data
-    constraints = parse_input_data("data\data.json")
 
+    with open("data\\data.json", "r") as f:
+        constraints = parse_input_data(f)
 
-    # Run GA
-    best_schedule, best_fitness = genetic_algorithm(constraints, population_size=100, genrations_size=100)
+    crossovar_method = int(input("Enter crossover method (1 for PMX, 2 for Order): "))
+    if crossovar_method == 1:
+        crossover_method = "PMX_Crossover"
+    elif crossovar_method == 2:
+        crossover_method = "order_crossover"
+    else:
+        raise ValueError("Invalid crossover method selected.")
+    mutation_method = int(input("Enter mutation method (1 for Random, 2 for Swapping): "))
+    if mutation_method == 1:
+        mutation_method = "attribute_level_mutation"
+    elif mutation_method == 2:
+        mutation_method = "swap_mutation"
+    else:
+        raise ValueError("Invalid mutation method selected.")
+    survivor_strategy = int(input("Enter survivor strategy (1 for elitism, 2 for genitor): "))
+    if survivor_strategy == 1:  
+        survivor_strategy = "elitism"
+    elif survivor_strategy == 2:
+        survivor_strategy = "genitor"
+    else:
+        raise ValueError("Invalid survivor strategy selected.")
+    
+    population_size = int(input("Enter population size: "))
+    generations_size = int(input("Enter generations size: "))
+
+    best_schedule, best_fitness, venue_violations, rest_period_violations, generations_graph = genetic_algorithm(constraints, population_size=population_size, generations_size=generations_size, crossover_method=crossover_method, mutation_method=mutation_method,survivor_strategy=survivor_strategy)
 
     print(f"Best fitness: {best_fitness}")
+    print(f"Venue violations: {venue_violations}")
+    print(f"Rest period violations: {rest_period_violations}")
 
 
     df = pd.DataFrame(best_schedule, columns=["Team1", "Team2", "Venue", "Day", "Time Slot", "Week"])
 
-    # Extract TeamName from dictionaries
-    df['Team1'] = df['Team1'].apply(lambda x: x['TeamName'] if isinstance(x, dict) else x)
-    df['Team2'] = df['Team2'].apply(lambda x: x['TeamName'] if isinstance(x, dict) else x)
-    df['Venue'] = df['Venue'].apply(lambda x: x['VenueName'] if isinstance(x, dict) else x)
 
-    # Save to CSV
-    df.to_csv("best_schedule.csv", index=False)
+    df['Team1'] = df['Team1'].apply(lambda x: x.get('TeamName') if isinstance(x, dict) else x)
+    df['Team2'] = df['Team2'].apply(lambda x: x.get('TeamName') if isinstance(x, dict) else x)
+    df['Venue'] = df['Venue'].apply(lambda x: x.get('VenueName') if isinstance(x, dict) else x)
 
-    visualize_schedule(sort_schedule(best_schedule),constraints)
+
+
+    df.to_csv(f"best_schedule.csv", index=False)
+
+    # Visualize the schedule
+    visualize_schedule(sort_schedule(best_schedule), venue_violations, rest_period_violations, constraints)
