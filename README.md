@@ -17,15 +17,15 @@ This is a Streamlit application and terminal-based tool for scheduling tournamen
 ## 🏗️ Installation
 
 ### Prerequisites
-- Python 3.8 or higher
+- Python 3.10 or higher
 - [Streamlit](https://streamlit.io/)
 - Required Python packages listed in [`requirements.txt`](#requirements)
 
 ### Steps
 1. Clone this repository:
    ```bash
-   git clone https://github.com/<your-repo-url>.git
-   cd <your-repo-directory>
+   git clone https://github.com/ziad854/Tournment-Scheduler-GA.git
+   cd Tournment-Scheduler-GA
    ```
 
 2. Install the dependencies:
