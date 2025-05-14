@@ -149,44 +149,44 @@ def count_rest_violations_withpd(df, constraints):
 
 
 
-# def count_time_imbalances(schedule, constraints=None):
-#     """
-#     Count time imbalances where a team is scheduled to play more than once
-#     on the same day (same week and day) using a pandas-based approach.
+def count_time_imbalances(schedule, constraints=None):
+    """
+    Count time imbalances where a team is scheduled to play more than once
+    on the same day (same week and day) using a pandas-based approach.
     
-#     :param schedule: The schedule to evaluate, where each match is a tuple:
-#                      (team1, team2, venue, day, timeslot, week).
-#     :param constraints: The constraints dictionary (not used in this implementation but can be extended).
-#     :return: The total number of time imbalances (day-level scheduling conflicts).
-#     """
-#     # Step 1: Convert the schedule to a DataFrame
-#     schedule_data = [
-#         {
-#             "Team1": match[0]["TeamID"],
-#             "Team2": match[1]["TeamID"],
-#             "Day": match[3],
-#             "Week": int(match[5])  # Ensure week is an integer
-#         }
-#         for match in schedule
-#     ]
-#     df = pd.DataFrame(schedule_data)
+    :param schedule: The schedule to evaluate, where each match is a tuple:
+                     (team1, team2, venue, day, timeslot, week).
+    :param constraints: The constraints dictionary (not used in this implementation but can be extended).
+    :return: The total number of time imbalances (day-level scheduling conflicts).
+    """
+    # Step 1: Convert the schedule to a DataFrame
+    schedule_data = [
+        {
+            "Team1": match[0]["TeamID"],
+            "Team2": match[1]["TeamID"],
+            "Day": match[3],
+            "Week": int(match[5])  # Ensure week is an integer
+        }
+        for match in schedule
+    ]
+    df = pd.DataFrame(schedule_data)
 
-#     # Step 2: Create a unified list of matches for each team
-#     df_team1 = df[['Week', 'Day', 'Team1']].rename(columns={'Team1': 'Team'})
-#     df_team2 = df[['Week', 'Day', 'Team2']].rename(columns={'Team2': 'Team'})
-#     df_all = pd.concat([df_team1, df_team2])
+    # Step 2: Create a unified list of matches for each team
+    df_team1 = df[['Week', 'Day', 'Team1']].rename(columns={'Team1': 'Team'})
+    df_team2 = df[['Week', 'Day', 'Team2']].rename(columns={'Team2': 'Team'})
+    df_all = pd.concat([df_team1, df_team2])
 
-#     # Step 3: Count occurrences of each (week, day) for each team
-#     df_all['DailyKey'] = df_all.apply(lambda row: (row['Week'], row['Day']), axis=1)
-#     daily_counts = df_all.groupby(['Team', 'DailyKey']).size()
+    # Step 3: Count occurrences of each (week, day) for each team
+    df_all['DailyKey'] = df_all.apply(lambda row: (row['Week'], row['Day']), axis=1)
+    daily_counts = df_all.groupby(['Team', 'DailyKey']).size()
 
-#     # Step 4: Identify imbalances (where a team plays more than once on the same day)
-#     imbalances = daily_counts[daily_counts > 1]
+    # Step 4: Identify imbalances (where a team plays more than once on the same day)
+    imbalances = daily_counts[daily_counts > 1]
 
-#     # Step 5: Calculate total imbalance score
-#     imbalance_score = sum(imbalances - 1)
+    # Step 5: Calculate total imbalance score
+    imbalance_score = sum(imbalances - 1)
 
-#     return imbalance_score
+    return imbalance_score
 
 
 def evaluate_fitness(individual, constraints):
@@ -213,6 +213,7 @@ def evaluate_fitness(individual, constraints):
     # Example: Ensure fair rest periods
     total_rest_violations, rest_violations_details = count_rest_violations(individual, constraints)
 
-    score = score - total_venue_conflicts - total_rest_violations * 3
+
+    score = score - total_venue_conflicts - total_rest_violations 
 
     return score, venue_conflicts_details, rest_violations_details

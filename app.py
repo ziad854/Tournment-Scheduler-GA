@@ -35,7 +35,7 @@ input_method = st.radio("Choose input method:", ["Upload JSON File", "Run with S
 teams = []
 
 if input_method == "Run with Saved Data":
-    with open("data\data.json", "r") as f:
+    with open("data/data.json", "r") as f:
         constraints = parse_input_data(f)
 
 if input_method == "Upload JSON File":
@@ -64,7 +64,7 @@ if st.button("🚀 Run Scheduler"):
             st.error("Please configure the Genetic Algorithm (Step 2) before running the scheduler.")
         else:
             # Pass mutation and crossover methods to the genetic algorithm
-            best_schedule, venue_violations, rest_period_violations, best_fitness, Generations_fitness = genetic_algorithm(
+            best_schedule, best_fitness, venue_violations, rest_period_violations, Generations_fitness = genetic_algorithm(
                 constraints,
                 population_size = pop_size,
                 generations_size = Gen_size,
@@ -133,7 +133,7 @@ if st.session_state.schedule:
         filtered_df = filtered_df[filtered_df["Venue"] == filter_venue]
     if filter_day != "All":
         filtered_df = filtered_df[filtered_df["Day"] == filter_day]
-    if filter_day != "All":
+    if filter_week != "All":
         filtered_df = filtered_df[filtered_df["Week"] == filter_week]
 
     st.dataframe(filtered_df.style.set_properties(**{
