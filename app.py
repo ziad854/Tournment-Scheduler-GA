@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+import random
+random.seed(42)  # For reproducibility
 
 from src.ga.scheduler import genetic_algorithm
 from src.ga.operators import *
@@ -26,8 +28,8 @@ if 'crossover_method' not in st.session_state:
 # Sidebar configuration
 st.sidebar.header("⚙️ Settings")
 
-pop_size = st.sidebar.slider("Population Size", 50, 2000, 500, step=50)
-Gen_size = st.sidebar.slider("Generations Size", 50, 800, 200, step=50)
+pop_size = st.sidebar.slider("Population Size", 100, 2000, 500, step=50)
+Gen_size = st.sidebar.slider("Generations Size", 100, 800, 200, step=50)
 
 # Team input
 st.header("1️⃣ Enter Teams")
@@ -48,13 +50,15 @@ st.header("2️⃣ Configure Genetic Algorithm")
 mutation_method = st.selectbox("Select Mutation Method", ["swap_mutation", "attribute_level_mutation"])
 crossover_method = st.selectbox("Select Crossover Method", ["PMX_Crossover", "order_crossover"])
 survivor_strategy = st.selectbox("Select Survivor Strategy", ["elitism", "genitor"])
+selection_method = st.selectbox("Select Selection Method", ["tournament_selection", "rank_based_selection"])
 
 # Store selected methods in session state for use in the scheduler
 if st.button("💾 Save Configuration"):
     st.session_state.mutation_method = mutation_method
     st.session_state.crossover_method = crossover_method
     st.session_state.survivor_strategy = survivor_strategy
-    st.success(f"Configuration Saved: Mutation = {mutation_method}, Crossover = {crossover_method}, Survivor = {survivor_strategy}")
+    st.session_state.selection_method = selection_method
+    st.success(f"Configuration Saved: Mutation = {mutation_method}, Crossover = {crossover_method}, Survivor = {survivor_strategy}, Selection = {selection_method}")
 
 # Scheduler execution
 st.header("3️⃣ Run Scheduler")
@@ -70,7 +74,8 @@ if st.button("🚀 Run Scheduler"):
                 generations_size = Gen_size,
                 mutation_method=st.session_state.mutation_method,
                 crossover_method=st.session_state.crossover_method,
-                survivor_strategy=st.session_state.survivor_strategy
+                survivor_strategy=st.session_state.survivor_strategy,
+                selection_method=st.session_state.selection_method
             )
 
             st.session_state.schedule = best_schedule

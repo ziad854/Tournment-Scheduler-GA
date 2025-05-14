@@ -2,7 +2,7 @@ from collections import defaultdict
 import pandas as pd
 
 
-def count_venue_conflicts(schedule, constraints):
+def count_venue_conflicts(schedule):
     """
     Count venue conflicts based on the schedule.
 
@@ -13,18 +13,17 @@ def count_venue_conflicts(schedule, constraints):
     """
     venue_usage = {}
 
-    # Count occurrences of each (Venue, Week, Day)
+    # Count occurrences of each (Venue, Week, Day) 
     for match in schedule:
         _, _, venue, day, _, week = match
         venue_key = (venue.get('VenueName'), week, day)
         venue_usage[venue_key] = venue_usage.get(venue_key, 0) + 1
 
     # Identify conflicts (more than one match scheduled for the same (Venue, Week, Day))
-    venue_violations = {key: count for key, count in venue_usage.items() if count > 1}
+    venue_violations = {key: count for key, count in venue_usage.items() if count > 1} 
 
     # Total conflicts (subtract 1 for each over-scheduled venue)
     total_venue_violations = sum(count - 1 for count in venue_violations.values())
-    # Detailed conflict information
     violation_details = {key: count for key, count in venue_violations.items()}
 
     return total_venue_violations, violation_details
@@ -199,21 +198,21 @@ def evaluate_fitness(individual, constraints):
     :return: Details of rest period violations.
     """
 
-    df = pd.DataFrame(individual, columns=["Team1", "Team2", "Venue", "Day", "Time Slot", "Week"])
-    df['Team1'] = df['Team1'].apply(lambda x: x['TeamName'] if isinstance(x, dict) else x)
-    df['Team2'] = df['Team2'].apply(lambda x: x['TeamName'] if isinstance(x, dict) else x)
-    df['Venue'] = df['Venue'].apply(lambda x: x['VenueName'] if isinstance(x, dict) else x)
+    # df = pd.DataFrame(individual, columns=["Team1", "Team2", "Venue", "Day", "Time Slot", "Week"])
+    # df['Team1'] = df['Team1'].apply(lambda x: x['TeamName'] if isinstance(x, dict) else x)
+    # df['Team2'] = df['Team2'].apply(lambda x: x['TeamName'] if isinstance(x, dict) else x)
+    # df['Venue'] = df['Venue'].apply(lambda x: x['VenueName'] if isinstance(x, dict) else x)
 
 
     score = 0
 
-    # Example: Minimize venue conflicts
-    total_venue_conflicts, venue_conflicts_details = count_venue_conflicts(individual, constraints)
+    total_venue_conflicts, venue_conflicts_details = count_venue_conflicts(individual)
 
-    # Example: Ensure fair rest periods
     total_rest_violations, rest_violations_details = count_rest_violations(individual, constraints)
 
+    total_time_imbalances = count_time_imbalances(individual, constraints)
 
-    score = score - total_venue_conflicts - total_rest_violations 
+
+    score = score - total_venue_conflicts - total_rest_violations - total_time_imbalances
 
     return score, venue_conflicts_details, rest_violations_details

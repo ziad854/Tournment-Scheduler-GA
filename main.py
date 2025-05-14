@@ -33,10 +33,18 @@ if __name__ == "__main__":
     else:
         raise ValueError("Invalid survivor strategy selected.")
     
+    selection_method = int(input("Enter Selection method (1 for Tournament, 2 for Rank Based): "))
+    if selection_method == 1:
+        selection_method = "tournament_selection"
+    elif selection_method == 2:
+        selection_method = "rank_based_selection"
+    else:
+        raise ValueError("Invalid Selection method selected.")
+    
     population_size = int(input("Enter population size: "))
     generations_size = int(input("Enter generations size: "))
 
-    best_schedule, best_fitness, venue_violations, rest_period_violations, generations_graph = genetic_algorithm(constraints, population_size=population_size, generations_size=generations_size, crossover_method=crossover_method, mutation_method=mutation_method,survivor_strategy=survivor_strategy)
+    best_schedule, best_fitness, venue_violations, rest_period_violations, generations_graph = genetic_algorithm(constraints, population_size=population_size, generations_size=generations_size, crossover_method=crossover_method, mutation_method=mutation_method,selection_method=selection_method,survivor_strategy=survivor_strategy)
 
     print(f"Best fitness: {best_fitness}")
     print(f"Venue violations: {venue_violations}")

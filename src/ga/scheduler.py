@@ -2,8 +2,10 @@ from src.ga.fitness import evaluate_fitness
 from src.ga.operators import *
 from src.ga.population import initialize_population
 
+
+
 def genetic_algorithm(constraints, population_size, generations_size, 
-                      crossover_method, mutation_method, survivor_strategy="elitism"):
+                      crossover_method, mutation_method,selection_method, survivor_strategy="elitism"):
     # Initialize population
     population = initialize_population(constraints, population_size)
     fitness_scores = [evaluate_fitness(ind, constraints)[0] for ind in population]
@@ -15,7 +17,14 @@ def genetic_algorithm(constraints, population_size, generations_size,
 
     while best_fitness != 0 and generation < generations_size:
         # --- Parent Selection ---
-        selected = select_parents(population, fitness_scores)
+        match selection_method:
+            case "tournament_selection":
+                selected = tournament_selection(population, fitness_scores, tournament_size=population_size // 2)
+            case "rank_based_selection":
+                selected = rank_based_selection(population, fitness_scores, selection_pressure=1.2)
+            case _:
+                raise ValueError(f"Unknown selection method: {selection_method}")
+
 
         # --- Crossover ---
         new_population = []

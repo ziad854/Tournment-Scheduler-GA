@@ -1,7 +1,6 @@
 import numpy as np
 import random
-
-random.seed(42)  # For reproducibility
+# random.seed(42)  
 
 
 def initialize_population(constraints, population_size ):
@@ -15,18 +14,15 @@ def initialize_population(constraints, population_size ):
     
     for _ in range(population_size):
         individual = []
-        random.shuffle(total_matches)  # Shuffle matches for diversity
+        random.shuffle(total_matches)  
         
         for match in total_matches:
             team1, team2 = match
             time_slot = random.choice(time_slots)
             venue = random.choice(venues)
             day = random.choice(days)
-            #time_slot = random.choice(time_slots)
             week = random.choice(weeks)
             
-            # Ensure constraints are respected (e.g., venue availability, no conflicts)
-            # if validate_match(team1, team2, venue, day, time_slot, individual, constraints):
             individual.append((team1, team2, venue, day, time_slot,week))
         
         population.append(individual)

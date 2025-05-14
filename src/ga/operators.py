@@ -1,8 +1,8 @@
 import numpy as np
 import random
-random.seed(42)  # For reproducibility
+# random.seed(42)  
 
-def select_parents(population, fitness_scores, tournament_size=100):
+def tournament_selection(population, fitness_scores, tournament_size=50):
     """
     Selects parents from the population using tournament selection.
 
@@ -17,7 +17,6 @@ def select_parents(population, fitness_scores, tournament_size=100):
     selected_parents = []
 
     for _ in range(len(population)):
-        # Randomly select individuals for the tournament
         tournament_indices = np.random.choice(len(population), tournament_size, replace=False)
         tournament = [(population[i], fitness_scores[i]) for i in tournament_indices]
 
@@ -25,6 +24,55 @@ def select_parents(population, fitness_scores, tournament_size=100):
         winner = max(tournament, key=lambda x: x[1])
         selected_parents.append(winner[0])
 
+    return selected_parents
+
+
+
+def rank_based_selection(population, fitness_scores, selection_pressure=1.5):
+    """
+    Selects parents from the population using rank-based selection.
+    
+    In rank-based selection, individuals are selected based on their rank
+    rather than their actual fitness values, which helps maintain selection 
+    pressure even when fitness values converge.
+    
+    :param population: List of individuals in the current population.
+    :param fitness_scores: List of fitness scores corresponding to the population.
+    :param selection_pressure: A value between 1.0 and 2.0 that determines the selection pressure.
+                              Higher values favor higher-ranked individuals more strongly.
+    :return: List of selected parents.
+    """
+    # Ensure selection pressure is within valid range
+    if not (1.0 <= selection_pressure <= 2.0):
+        raise ValueError("Selection pressure must be between 1.0 and 2.0")
+        
+    # Create list of (individual, fitness) pairs
+    population_with_fitness = list(zip(population, fitness_scores))
+    
+    # Sort by fitness in descending order (higher fitness is better)
+    sorted_population = sorted(population_with_fitness, key=lambda x: x[1], reverse=True)
+    
+    # Extract just the sorted individuals
+    sorted_individuals = [ind for ind, _ in sorted_population]
+    
+    # Calculate selection probabilities based on rank
+    n = len(population)
+    ranks = np.arange(1, n+1)
+    
+    # Calculate the probability for each rank
+    # Rank 1 (best) has the highest probability
+    probs = (2 - selection_pressure) / n + (2 * (ranks - 1) * (selection_pressure - 1)) / (n * (n - 1))
+    
+    # Ensure the probabilities are in descending order (highest for best individuals)
+    probs = np.flip(probs)
+    
+    # Normalize probabilities to ensure they sum to 1
+    probs = probs / np.sum(probs)
+    
+    # Select parents based on calculated probabilities
+    selected_indices = np.random.choice(n, size=n, p=probs, replace=True)
+    selected_parents = [sorted_individuals[i] for i in selected_indices]
+    
     return selected_parents
 
 
@@ -38,10 +86,9 @@ def order_crossover(parent1, parent2):
 
     size = len(parent1)
     
-    # Step 1: Select random crossover points
+
     start, end = sorted(random.sample(range(size), 2))
 
-    # Initialize children
     child1 = [None] * size
     child2 = [None] * size
 
@@ -49,7 +96,6 @@ def order_crossover(parent1, parent2):
     child1[start:end] = parent1[start:end]
     child2[start:end] = parent2[start:end]
 
-    # Step 2: Fill the remaining positions in both children using a toroidal wraparound
     # Fill child1 using elements from parent2 that are not already in child1
     p2_index = end
     for i in range(size):
@@ -90,18 +136,14 @@ def PMX_Crossover (parent1, parent2):
 
     size = len(parent1)
 
-    # Step 1: Select two random crossover points
     start, end = sorted(random.sample(range(size), 2))
 
-    # Initialize children as copies of the parents
     child1 = parent1[:]
     child2 = parent2[:]
 
-    # Step 2: Copy the segment between the crossover points from parent1 to child1 and parent2 to child2
     child1[start:end] = parent2[start:end]
     child2[start:end] = parent1[start:end]
 
-    # Step 3: Resolve conflicts in child1
     for i in range(start, end):
         gene = parent2[i]
         if gene in child1[start:end]:
@@ -110,7 +152,6 @@ def PMX_Crossover (parent1, parent2):
             gene = parent2[parent1.index(gene)]
         child1[child1.index(parent2[i])] = gene
 
-    # Step 4: Resolve conflicts in child2
     for i in range(start, end):
         gene = parent1[i]
         if gene in child2[start:end]:
@@ -139,18 +180,14 @@ def elitism (old_population, offspring, fitness_old, fitness_offspring, elite_si
     :param elite_size: Number of top individuals to preserve.
     :return: The new population for the next generation.
     """
-    # Combine old population and offspring
     combined_population = old_population + offspring
     combined_fitness = fitness_old + fitness_offspring
 
-    # Sort combined population by fitness (descending order)
     sorted_indices = sorted(range(len(combined_fitness)), key=lambda i: combined_fitness[i], reverse=True)
     sorted_population = [combined_population[i] for i in sorted_indices]
 
-    # Select the top `elite_size` individuals
     new_population = sorted_population[:elite_size]
 
-    # Fill the rest of the population with randomly selected individuals
     remaining_slots = len(old_population) - elite_size
     random_indices = random.sample(range(elite_size, len(sorted_population)), remaining_slots)
     new_population.extend([sorted_population[i] for i in random_indices])
