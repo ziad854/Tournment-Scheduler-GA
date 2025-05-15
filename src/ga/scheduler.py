@@ -6,6 +6,17 @@ from src.ga.population import initialize_population
 
 def genetic_algorithm(constraints, population_size, generations_size, 
                       crossover_method, mutation_method,selection_method, survivor_strategy="elitism"):
+    """
+    Genetic Algorithm for scheduling.
+    :param constraints: Constraints for the scheduling problem.
+    :param population_size: Size of the population.
+    :param generations_size: Number of generations to run.
+    :param crossover_method: Method for crossover operation.
+    :param mutation_method: Method for mutation operation.
+    :param selection_method: Method for selection operation.
+    :param survivor_strategy: Strategy for selecting survivors.
+    :return: Best individual found, its fitness score, and violation details.
+    """
     # Initialize population
     population = initialize_population(constraints, population_size)
     fitness_scores = [evaluate_fitness(ind, constraints)[0] for ind in population]
@@ -19,7 +30,7 @@ def genetic_algorithm(constraints, population_size, generations_size,
         # --- Parent Selection ---
         match selection_method:
             case "tournament_selection":
-                selected = tournament_selection(population, fitness_scores, tournament_size=population_size // 2)
+                selected = tournament_selection(population, fitness_scores, tournament_size=population_size // 10)
             case "rank_based_selection":
                 selected = rank_based_selection(population, fitness_scores, selection_pressure=1.2)
             case _:
@@ -72,5 +83,5 @@ def genetic_algorithm(constraints, population_size, generations_size,
         generations_graph.append(best_fitness)
         print(f"Generation {generation}: Best Fitness = {best_fitness}")
         generation += 1
-    score, venue_violations, rest_period_violations = evaluate_fitness(population[idx_best], constraints)
-    return population[idx_best],score, venue_violations, rest_period_violations, generations_graph
+    score, venue_violations, rest_period_violations, time_violations_details = evaluate_fitness(population[idx_best], constraints)
+    return population[idx_best],score, venue_violations, rest_period_violations, time_violations_details, generations_graph

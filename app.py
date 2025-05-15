@@ -11,7 +11,7 @@ from src.utils.helper import parse_input_data
 
 # Configuration
 st.set_page_config(layout="wide")
-st.title("🏆 Tournament Scheduler using Genetic Algorithm")
+st.title("Tournament Scheduler using Genetic Algorithm")
 
 # Session states
 if 'schedule' not in st.session_state:
@@ -32,7 +32,7 @@ pop_size = st.sidebar.slider("Population Size", 100, 2000, 500, step=50)
 Gen_size = st.sidebar.slider("Generations Size", 100, 800, 200, step=50)
 
 # Team input
-st.header("1️⃣ Enter Teams")
+st.header("Enter Teams")
 input_method = st.radio("Choose input method:", ["Upload JSON File", "Run with Saved Data"])
 teams = []
 
@@ -46,14 +46,14 @@ if input_method == "Upload JSON File":
         constraints = parse_input_data(uploaded_file)
 
 # Genetic Algorithm Configuration Step
-st.header("2️⃣ Configure Genetic Algorithm")
+st.header("Configure Genetic Algorithm")
 mutation_method = st.selectbox("Select Mutation Method", ["swap_mutation", "attribute_level_mutation"])
 crossover_method = st.selectbox("Select Crossover Method", ["PMX_Crossover", "order_crossover"])
 survivor_strategy = st.selectbox("Select Survivor Strategy", ["elitism", "genitor"])
 selection_method = st.selectbox("Select Selection Method", ["tournament_selection", "rank_based_selection"])
 
 # Store selected methods in session state for use in the scheduler
-if st.button("💾 Save Configuration"):
+if st.button("Save Configuration"):
     st.session_state.mutation_method = mutation_method
     st.session_state.crossover_method = crossover_method
     st.session_state.survivor_strategy = survivor_strategy
@@ -61,14 +61,14 @@ if st.button("💾 Save Configuration"):
     st.success(f"Configuration Saved: Mutation = {mutation_method}, Crossover = {crossover_method}, Survivor = {survivor_strategy}, Selection = {selection_method}")
 
 # Scheduler execution
-st.header("3️⃣ Run Scheduler")
-if st.button("🚀 Run Scheduler"):
+st.header("Run Scheduler")
+if st.button(" Run Scheduler"):
     try:
         if st.session_state.mutation_method is None or st.session_state.crossover_method is None or st.session_state.survivor_strategy is None:
             st.error("Please configure the Genetic Algorithm (Step 2) before running the scheduler.")
         else:
             # Pass mutation and crossover methods to the genetic algorithm
-            best_schedule, best_fitness, venue_violations, rest_period_violations, Generations_fitness = genetic_algorithm(
+            best_schedule, best_fitness, venue_violations, rest_period_violations, time_violations, Generations_fitness = genetic_algorithm(
                 constraints,
                 population_size = pop_size,
                 generations_size = Gen_size,
@@ -81,6 +81,9 @@ if st.button("🚀 Run Scheduler"):
             st.session_state.schedule = best_schedule
             st.session_state.fitness_trend = best_fitness
             st.session_state.Generations_fitness = Generations_fitness
+            st.session_state.venue_violations = venue_violations
+            st.session_state.rest_period_violations = rest_period_violations
+            st.session_state.time_violations = time_violations
             st.session_state.constraints = constraints
     except Exception as e:
         st.error(f"Error: {e}")
@@ -90,6 +93,9 @@ if st.session_state.schedule:
     schedule = st.session_state.schedule
     fitness_trend = st.session_state.fitness_trend
     Generations_fitness = st.session_state.Generations_fitness
+    venue_violations = st.session_state.venue_violations
+    rest_period_violations = st.session_state.rest_period_violations
+    time_violations = st.session_state.time_violations
     constraints = st.session_state.constraints
 
     # Fitness plot
@@ -103,9 +109,24 @@ if st.session_state.schedule:
     st.pyplot(fig)
 
     # Best Schedule
-    st.subheader("🏆 Best Schedule")
+    st.subheader("Best Schedule")
     st.write("The best schedule found by the genetic algorithm is:")
     st.write("**Fitness Score:**", fitness_trend)
+
+    st.write("**Venue Violations:**")
+    for venue, count in venue_violations.items():
+        st.write(f"- {venue[0]}, week {venue[1]}, Days {venue[2]}: {count} violations")
+
+    st.write("**Rest Period Violations:**")
+    for violation in rest_period_violations:
+        team, match_day, rest_period = violation.items()
+        st.write(f"- {team[1]}, Days: {match_day[1]} (Rest Period: {rest_period[1]})")
+
+    st.write("**Time Violations:**")
+    for violation in time_violations:
+        team, time_slot, count = violation.items()
+        st.write(f"- {team[0]}, time slot: {time_slot[1]} (Count: {count[1]})")
+
     
 
     # Visual schedule table

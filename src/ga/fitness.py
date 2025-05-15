@@ -10,6 +10,7 @@ def count_venue_conflicts(schedule):
                      (team1, team2, venue, day, timeslot, week).
     :param constraints: The constraints dictionary (not used in this implementation but can be extended).
     :return: The number of venue conflicts and detailed conflict information.
+    :return: Details of venue conflicts.
     """
     venue_usage = {}
 
@@ -37,6 +38,7 @@ def count_rest_violations(schedule, constraints):
                      (team1, team2, venue, day, timeslot, week).
     :param constraints: The constraints dictionary.
     :return: The total number of rest period violations.
+    :return: Details of rest period violations.
     """
     # Minimum rest period in days (default to 3 days if not specified)
     min_rest_days = constraints.get("rest_periods", {}).get("minimum_hours", 72) // 24
@@ -75,6 +77,46 @@ def count_rest_violations(schedule, constraints):
     
 
     return total_violations, violation_details
+
+def count_time_imbalances(schedule):
+    """
+    Count imbalances where a team is scheduled to play in the same time slot
+    too frequently across the entire schedule.
+
+    :param schedule: The schedule to evaluate, where each match is represented as a tuple:
+                     (team1, team2, venue, day, timeslot, week).
+    :return: The total imbalance score for uneven distribution of time slots.
+    :return: Details of time slot violations.
+    """
+    team_time_slots = {}
+
+    for match in schedule:
+        team1 = match[0]["TeamName"]
+        team2 = match[1]["TeamName"]
+        time_slot = match[4]
+
+        if team1 not in team_time_slots:
+            team_time_slots[team1] = {}
+        team_time_slots[team1][time_slot] = team_time_slots[team1].get(time_slot, 0) + 1
+
+        if team2 not in team_time_slots:
+            team_time_slots[team2] = {}
+        team_time_slots[team2][time_slot] = team_time_slots[team2].get(time_slot, 0) + 1
+
+    imbalance_score = 0
+    violatioan_details = []
+    for team, time_slot_counts in team_time_slots.items():
+        for count in time_slot_counts.values():
+            if count > 3:
+                imbalance_score += count - 1
+                violatioan_details.append({
+                    "team": team,
+                    "time_slot": time_slot,
+                    "count": count
+                })
+
+    return imbalance_score, violatioan_details
+
 
 def count_venue_conflicts_withpd(df, constraints):
     """
@@ -148,44 +190,7 @@ def count_rest_violations_withpd(df, constraints):
 
 
 
-def count_time_imbalances(schedule, constraints=None):
-    """
-    Count time imbalances where a team is scheduled to play more than once
-    on the same day (same week and day) using a pandas-based approach.
-    
-    :param schedule: The schedule to evaluate, where each match is a tuple:
-                     (team1, team2, venue, day, timeslot, week).
-    :param constraints: The constraints dictionary (not used in this implementation but can be extended).
-    :return: The total number of time imbalances (day-level scheduling conflicts).
-    """
-    # Step 1: Convert the schedule to a DataFrame
-    schedule_data = [
-        {
-            "Team1": match[0]["TeamID"],
-            "Team2": match[1]["TeamID"],
-            "Day": match[3],
-            "Week": int(match[5])  # Ensure week is an integer
-        }
-        for match in schedule
-    ]
-    df = pd.DataFrame(schedule_data)
 
-    # Step 2: Create a unified list of matches for each team
-    df_team1 = df[['Week', 'Day', 'Team1']].rename(columns={'Team1': 'Team'})
-    df_team2 = df[['Week', 'Day', 'Team2']].rename(columns={'Team2': 'Team'})
-    df_all = pd.concat([df_team1, df_team2])
-
-    # Step 3: Count occurrences of each (week, day) for each team
-    df_all['DailyKey'] = df_all.apply(lambda row: (row['Week'], row['Day']), axis=1)
-    daily_counts = df_all.groupby(['Team', 'DailyKey']).size()
-
-    # Step 4: Identify imbalances (where a team plays more than once on the same day)
-    imbalances = daily_counts[daily_counts > 1]
-
-    # Step 5: Calculate total imbalance score
-    imbalance_score = sum(imbalances - 1)
-
-    return imbalance_score
 
 
 def evaluate_fitness(individual, constraints):
@@ -210,9 +215,9 @@ def evaluate_fitness(individual, constraints):
 
     total_rest_violations, rest_violations_details = count_rest_violations(individual, constraints)
 
-    total_time_imbalances = count_time_imbalances(individual, constraints)
+    total_time_imbalances, time_violations_details = count_time_imbalances(individual)
 
 
     score = score - total_venue_conflicts - total_rest_violations - total_time_imbalances
 
-    return score, venue_conflicts_details, rest_violations_details
+    return score, venue_conflicts_details, rest_violations_details, time_violations_details

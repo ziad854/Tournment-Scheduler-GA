@@ -44,7 +44,7 @@ if __name__ == "__main__":
     population_size = int(input("Enter population size: "))
     generations_size = int(input("Enter generations size: "))
 
-    best_schedule, best_fitness, venue_violations, rest_period_violations, generations_graph = genetic_algorithm(constraints, population_size=population_size, generations_size=generations_size, crossover_method=crossover_method, mutation_method=mutation_method,selection_method=selection_method,survivor_strategy=survivor_strategy)
+    best_schedule, best_fitness, venue_violations, rest_period_violations, time_violations_details, generations_graph = genetic_algorithm(constraints, population_size=population_size, generations_size=generations_size, crossover_method=crossover_method, mutation_method=mutation_method,selection_method=selection_method,survivor_strategy=survivor_strategy)
 
     print(f"Best fitness: {best_fitness}")
     print(f"Venue violations: {venue_violations}")

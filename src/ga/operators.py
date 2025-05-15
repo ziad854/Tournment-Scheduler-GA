@@ -2,7 +2,7 @@ import numpy as np
 import random
 # random.seed(42)  
 
-def tournament_selection(population, fitness_scores, tournament_size=50):
+def tournament_selection(population, fitness_scores, tournament_size=5):
     """
     Selects parents from the population using tournament selection.
 
@@ -42,34 +42,26 @@ def rank_based_selection(population, fitness_scores, selection_pressure=1.5):
                               Higher values favor higher-ranked individuals more strongly.
     :return: List of selected parents.
     """
-    # Ensure selection pressure is within valid range
     if not (1.0 <= selection_pressure <= 2.0):
         raise ValueError("Selection pressure must be between 1.0 and 2.0")
         
     # Create list of (individual, fitness) pairs
     population_with_fitness = list(zip(population, fitness_scores))
     
-    # Sort by fitness in descending order (higher fitness is better)
     sorted_population = sorted(population_with_fitness, key=lambda x: x[1], reverse=True)
     
-    # Extract just the sorted individuals
     sorted_individuals = [ind for ind, _ in sorted_population]
     
     # Calculate selection probabilities based on rank
     n = len(population)
     ranks = np.arange(1, n+1)
     
-    # Calculate the probability for each rank
-    # Rank 1 (best) has the highest probability
     probs = (2 - selection_pressure) / n + (2 * (ranks - 1) * (selection_pressure - 1)) / (n * (n - 1))
     
-    # Ensure the probabilities are in descending order (highest for best individuals)
     probs = np.flip(probs)
     
-    # Normalize probabilities to ensure they sum to 1
     probs = probs / np.sum(probs)
     
-    # Select parents based on calculated probabilities
     selected_indices = np.random.choice(n, size=n, p=probs, replace=True)
     selected_parents = [sorted_individuals[i] for i in selected_indices]
     
