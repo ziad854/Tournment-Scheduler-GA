@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+import plotly.graph_objects as go
+import plotly.express as px
 import random
 random.seed(42)  # For reproducibility
 
@@ -98,17 +100,34 @@ if st.session_state.schedule:
     time_violations = st.session_state.time_violations
     constraints = st.session_state.constraints
 
-    # Fitness plot
+    # Replace your current fitness plot code with this:
     st.subheader("📈 Fitness Over Generations")
-    fig, ax = plt.subplots()
-    ax.plot(Generations_fitness, marker='o')
-    ax.set_title("Fitness Progress")
-    ax.set_xlabel("Generation")
-    ax.set_ylabel("Best Fitness")
-    ax.grid(True)
-    st.pyplot(fig)
 
-    # Best Schedule
+    fig = px.line(
+        x=list(range(len(Generations_fitness))), 
+        y=Generations_fitness,
+        markers=True,
+        labels={"x": "Generation", "y": "Best Fitness"},
+        title="Fitness Progress Over Generations",
+        template="plotly_dark",
+    )
+
+    fig.update_layout(
+        xaxis_title="Generation",
+        yaxis_title="Best Fitness",
+        hovermode="x unified",
+        font=dict(size=14),
+    )
+
+    fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='LightGray')
+
+    fig.update_traces(
+        hovertemplate="<b>Generation:</b> %{x}<br><b>Fitness:</b> %{y:.4f}<extra></extra>",
+        line=dict(width=2),
+        marker=dict(size=8)
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
     st.subheader("Best Schedule")
     st.write("The best schedule found by the genetic algorithm is:")
     st.write("**Fitness Score:**", fitness_trend)
@@ -144,6 +163,7 @@ if st.session_state.schedule:
     ])
     df_schedule.sort_values(by=["Week", "Day", "Time Slot"], inplace=True)
 
+
     # Filters
     st.markdown("### 🔍 Filter Matches")
     filter_team = st.selectbox("Filter by Team", ["All"] + sorted(set(df_schedule["Team 1"]).union(df_schedule["Team 2"])))
@@ -161,6 +181,11 @@ if st.session_state.schedule:
         filtered_df = filtered_df[filtered_df["Day"] == filter_day]
     if filter_week != "All":
         filtered_df = filtered_df[filtered_df["Week"] == filter_week]
+
+    csv = df_schedule.to_csv(index=False)
+    st.download_button(label="Download Schedule as CSV", data=csv, file_name='data/schedule.csv', mime='text/csv')
+
+    
 
     st.dataframe(filtered_df.style.set_properties(**{
         'background-color': '#e8f4fc',
