@@ -1,5 +1,0 @@
-numpy
-pandas
-matplotlib
-seaborn
-deap  # Distributed Evolutionary Algorithms in Python
