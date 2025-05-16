@@ -84,7 +84,7 @@ def order_crossover(parent1, parent2):
     child1 = [None] * size
     child2 = [None] * size
 
-    # Copy the segment from parent1 into child1 and from parent2 into child2
+
     child1[start:end] = parent1[start:end]
     child2[start:end] = parent2[start:end]
 
@@ -188,12 +188,27 @@ def elitism (old_population, offspring, fitness_old, fitness_offspring, elite_si
 
 
 
-def genitor (old_population, offspring, fitness_old, fitness_offspring):
-    combined = list(zip(old_population + offspring, fitness_old + fitness_offspring))
-    sorted_combined = sorted(combined, key=lambda x: x[1], reverse=True)
-    survivors = [ind for ind, _ in sorted_combined[:len(old_population)]]
-    return survivors
 
+def genitor(old_population, offspring, fitness_old, fitness_offspring):
+    """
+    Genitor-style replacement:
+    Each offspring replaces a worse individual in the current population.
+    
+    :param old_population: List of individuals in the current generation.
+    :param fitness_old: Fitness values for old_population.
+    :param offspring: List of new offspring individuals.
+    :param fitness_offspring: Fitness values for offspring.
+    :return: Updated population after replacement.
+    """
+
+    for child, child_fit in zip(offspring, fitness_offspring):
+        worst_index = fitness_old.index(min(fitness_old))
+
+        if child_fit > fitness_old[worst_index]:
+            old_population[worst_index] = child
+            fitness_old[worst_index] = child_fit
+
+    return old_population
 
 
 
@@ -263,3 +278,10 @@ def swap_mutation(individual, mutation_rate=0.1):
     return individual
 
 
+
+
+# def genitor (old_population, offspring, fitness_old, fitness_offspring):
+#     combined = list(zip(old_population + offspring, fitness_old + fitness_offspring))
+#     sorted_combined = sorted(combined, key=lambda x: x[1], reverse=True)
+#     survivors = [ind for ind, _ in sorted_combined[:len(old_population)]]
+#     return survivors
